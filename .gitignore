@@ -8,3 +8,4 @@ cmatriz.csv
 W_snn.npz
 graphs/*
 .vscode
+.DS_Store
