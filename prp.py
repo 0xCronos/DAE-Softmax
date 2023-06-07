@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import utility as ut
 
@@ -84,12 +85,16 @@ def load_class_csv(params):
 
 
 # Beginning ...
-def main():        
+def main():
+    now = time.time()
+    
     params = ut.load_config()
     data = load_class_csv(params)
     dtrn, dtst = create_input_label(data, params)
     save_data_csv(dtrn, dtst)
     
+    timelapse = time.time() - now
+    print('Elapsed time: ', timelapse)
 
 if __name__ == '__main__':   
 	main()
