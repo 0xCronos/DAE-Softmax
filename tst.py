@@ -51,10 +51,8 @@ def main():
     params = ut.load_config()
     Xt, Yt  = load_data_tst()
     W = load_w_dl()
-    
-    [print(w.shape) for w in W]
     ann = create_ann(W, Xt)
-    Y_pred = ut.sft_forward(ann, params)
+    Y_pred = ut.sft_forward(ann, Xt, params)
     cm, fsc = metricas(Yt, Y_pred)
     save_measure(cm, fsc)
 	

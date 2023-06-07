@@ -146,8 +146,10 @@ def dae_updW_madam(dae, gradW, params):
 
 # Softmax forward
 # TODO: refactor
-def sft_forward(ann, params):
+def sft_forward(ann, X, params):
     layers = ann['layers']
+    
+    ann['A'][0] = X
     for l in range(1, layers):
         ann['Z'][l] = (ann['W'][l-1] @ ann['A'][l-1])
         if l != layers: # hidden layers
@@ -159,7 +161,7 @@ def sft_forward(ann, params):
 
 # Softmax's gradient
 def gradW_softmax(ann, Y, params):
-    minibatch_size = params['sft_minibatch_size']
+    minibatch_size = params['sft_minibatch_size']    
     gradW = -(1/minibatch_size) * ((Y - ann['A'][-1]) @ ann['A'][0].T)
     return gradW
 

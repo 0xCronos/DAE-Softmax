@@ -10,20 +10,20 @@ def train_sft_batch(ann, X, Y, params):
     amount_of_batches = np.int16(np.floor(X.shape[1] / minibatch_size))
     costs = []
 
-    for n in range(amount_of_batches):   
+    for n in range(amount_of_batches):
         idx = get_batch_indexes(minibatch_size, n)
         Xb, Yb = X[:, idx], Y[:, idx]
-        ann['A'][0] = Xb
-        Yb_pred = ut.sft_forward(ann, params)
-        gradW = ut.gradW_softmax(ann, Y, params)
+        Yb_pred = ut.sft_forward(ann, Xb, params)
+        gradW = ut.gradW_softmax(ann, Yb, params)
         _ = ut.updW_sft_mAdam(ann, gradW, params)
         cost = ut.calculate_sft_cost(Yb, Yb_pred, params)
         costs.append(cost)
 
     return costs
 
-# TODO: refactor
+
 def create_ann(X, Y):
+    #minibatch_size = params['sft_minibatch_size']
     WL = ut.iniW(Y.shape[0], X.shape[0])
     V = np.zeros_like(WL)
     S = np.zeros_like(WL)
@@ -35,7 +35,6 @@ def create_ann(X, Y):
 
 # TODO: refactor
 def train_softmax(X, Y, params):
-    print(f'Training softmax...')
     ann = create_ann(X, Y)
     mse = []
     for i in range(params['sft_max_iter']):
@@ -47,9 +46,9 @@ def train_softmax(X, Y, params):
         if i % 10 == 0 and i != 0:
             print(f'Iteration: {i}', mse[i])
 
-    #ut.plot_this([mse], 'graphs/softmax/train', ['MSE'], title='Softmax training')
+    ut.plot_this([mse], 'graphs/softmax/train', ['MSE'], title='Softmax training')
     return(ann['W'][-1], np.array(mse))
- 
+
     
 def get_batch_indexes(minibatch_size, n):
     start_index = n * minibatch_size
@@ -112,10 +111,11 @@ def train_dae(X, params):
         costs = train_dae_batch(dae, Xe, params)
         mse.append(np.mean(costs))
     
-    #ut.plot_this([mse], 'graphs/dae/train', ['MSE'], title="DAE Training")
+    ut.plot_this([mse], 'graphs/dae/train', ['MSE'], title="DAE Training")
     #[print(cost) for cost in mse] # debug only
     
-    return dae['W'][:len(dae['W']) // 2], dae['A'][-1]
+    #return dae['W'][:len(dae['W']) // 2], dae['A'][-1]
+    return dae['W'], dae['A'][-1]
 
 
 #load Data for Training
@@ -129,10 +129,12 @@ def load_data_trn():
 def main():
     params = ut.load_config()
     Xe, Ye = load_data_trn()
-    W, Xr = train_dae(Xe, params)
-    Ws, costs = train_softmax(Xr, Ye, params)
+    W, _ = train_dae(Xe, params)
+    Ws, costs = train_softmax(Xe, Ye, params)
+    
     W.append(Ws)
     ut.save_w_dl(W, costs)
-       
+
+
 if __name__ == '__main__':
 	main()
