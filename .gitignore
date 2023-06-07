@@ -1,7 +1,7 @@
-X_train
-X_test
-Y_train
-Y_test
+X_train.csv
+X_test.csv
+Y_train.csv
+Y_test.csv
 costo.csv
 fscores.csv
 cmatriz.csv
