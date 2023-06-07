@@ -109,7 +109,7 @@ def dae_forward(dae, X, params):
 
 # STEP 2: Feed-Backward for DAE
 # TODO: Check if correct
-def dae_gradW(dae, params):    
+def dae_gradW(dae, params):
     act_func = params['dae_enc_act_func']
 
     layers = dae['layers']
@@ -131,6 +131,7 @@ def dae_gradW(dae, params):
 
 
 # Update DAE's weight via mAdam
+# TODO: generalize for any ann
 def dae_updW_madam(dae, gradW, params):
     learning_rate = params['dae_learning_rate']
     beta_1, beta_2, epsilon = 0.9, 0.999, 10e-8
@@ -143,50 +144,60 @@ def dae_updW_madam(dae, gradW, params):
     
     return dae['W']
 
-# # Update AE's weight via RMSprop
-# def updW1_rmsprop(ae, gW1, params):
-#     beta, epsilon = 0.9, 1e-8
-#     ae['V'] = (beta * ae['V']) + (1 - beta) * np.square(gW1)
-#     grms = (1 / np.sqrt(ae['V'] + epsilon)) * gW1
-#     ae['W'][0] = ae['W'][0] - params['sae_learning_rate'] * grms
-#     return ae['W'][0], ae['V']
+# Softmax forward
+# TODO: refactor
+def sft_forward(ann, params):
+    layers = ann['layers']
+    for l in range(1, layers):
+        ann['Z'][l] = (ann['W'][l-1] @ ann['A'][l-1])
+        if l != layers: # hidden layers
+            ann['A'][l] = act_function(ann['Z'][l], params['dae_enc_act_func'])
+        else: # output layer
+            ann['A'][l] = softmax(ann['Z'][l])
+    return ann['A'][-1]
 
-# # Update W and V
-# def updWV_sgdm(W, V, gradW, param):
-#     beta_coef = param.get('beta_coef') # beta en ppt
-#     learning_rate = param.get('learning_rate') # mu en ppt
+
+# Softmax's gradient
+def gradW_softmax(ann, Y, params):
+    minibatch_size = params['sft_minibatch_size']
+    gradW = -(1/minibatch_size) * ((Y - ann['A'][-1]) @ ann['A'][0].T)
+    return gradW
+
+
+# Update Softmax's weight via mAdam
+# TODO: refactor
+def updW_sft_mAdam(ann, gradW, params):
+    learning_rate = params['sft_learning_rate']
+    beta_1, beta_2, epsilon = 0.9, 0.999, 10e-8
+   
+    ann['V'] = (beta_1 * ann['V']) + ((1 - beta_1) * gradW)
+    ann['S'] = (beta_2 * ann['S']) + ((1 - beta_2) * np.square(gradW))
+    gAdam = (np.sqrt(1 - beta_2) / (1 - beta_1)) * ((ann['V']) / (np.sqrt(ann['S'] + epsilon)))
+    ann['W'][-1] = ann['W'][-1] - (learning_rate * gAdam)
     
-#     layers = len(W)
-#     for l in range(1, layers + 1):
-#         V[f'V{l}'] = beta_coef * V[f'V{l}'] + learning_rate * gradW[f'gradW{l}']
-#         W[f'W{l}'] = W[f'W{l}'] - V[f'V{l}']
-    
-#     return V, W
+    return ann['W'][-1]
 
 
-
-# # Update Softmax's weight via mAdam
-# def updW_sft_rmsprop(w,v,gw,mu):
-#     ...    
-#     return(w,v)
-
-
-# # Softmax's gradient
-# def gradW_softmax(x,y,a):        
-#     ya   = y*np.log(a)
-#     ...    
-#     return(gW,Cost)
+# Softmax cost calculation
+# TODO: refactor
+def calculate_sft_cost(Y, Y_pred, params):
+    minibatch_size = params['sft_minibatch_size']
+    log_Y_pred = np.log(Y_pred)
+    log_Y_pred[log_Y_pred == -np.inf] = 0
+    cost = -np.sum(np.sum(Y * log_Y_pred, axis=0) / Y.shape[0]) / minibatch_size
+    return cost
 
 
 # Calculate Softmax
 def softmax(z):
     exp_z = np.exp(z-np.max(z))
-    return(exp_z/exp_z.sum(axis=0,keepdims=True))
+    return(exp_z/exp_z.sum(axis=0, keepdims=True))
 
 
-# # save weights DL and costo of Softmax
-# def save_w_dl(...):    
-#     ...
+# save weights SAE and cost of Softmax
+def save_w_dl(W, costs):
+    np.savez("W_snn.npz", *W)
+    np.savetxt("costo.csv", costs, fmt="%.10f")
 
 
 # TODO: delete before sending homework

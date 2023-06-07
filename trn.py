@@ -3,25 +3,52 @@ import numpy      as np
 import utility    as ut
 
 
-# # Training miniBatch 
-# def train_sft_batch(x,y,W,V,S,param):
-#     costo = []    
-#     for i in range(numBatch):   
-#         ...
-#         ...        
-#     return(W,V,costo)
+# Training miniBatch for softmax
+# TODO: refactor
+def train_sft_batch(ann, X, Y, params):
+    minibatch_size = params['sft_minibatch_size']
+    amount_of_batches = np.int16(np.floor(X.shape[1] / minibatch_size))
+    costs = []
+
+    for n in range(amount_of_batches):   
+        idx = get_batch_indexes(minibatch_size, n)
+        Xb, Yb = X[:, idx], Y[:, idx]
+        ann['A'][0] = Xb
+        Yb_pred = ut.sft_forward(ann, params)
+        gradW = ut.gradW_softmax(ann, Y, params)
+        _ = ut.updW_sft_mAdam(ann, gradW, params)
+        cost = ut.calculate_sft_cost(Yb, Yb_pred, params)
+        costs.append(cost)
+
+    return costs
+
+# TODO: refactor
+def create_ann(X, Y):
+    WL = ut.iniW(Y.shape[0], X.shape[0])
+    V = np.zeros_like(WL)
+    S = np.zeros_like(WL)
+    W = [WL]
+    A = [None] * (len(W) + 1)
+    Z = [None] * (len(W) + 1)
+    return {'W': W, 'V': V, 'A': A, 'S': S, 'Z': Z, 'layers': len(W)+1}
 
 
-# # Softmax's training via mAdam
-# def train_softmax(x,y,param):
-#     W,V,S    = ut.iniW(...)    
-#     ...    
-#     for Iter in range(1,par1[0]):        
-#         idx   = np.random.permutation(x.shape[1])
-#         xe,ye = x[:,idx],y[:,idx]         
-#         W,V,c = train_sft_batch(xe,ye,W,V,param)
-#         ...
-#     return(W,Costo)    
+# TODO: refactor
+def train_softmax(X, Y, params):
+    print(f'Training softmax...')
+    ann = create_ann(X, Y)
+    mse = []
+    for i in range(params['sft_max_iter']):
+        idx = np.random.permutation(X.shape[1])
+        Xr, Yr = X[:,idx], Y[:,idx]
+        costs = train_sft_batch(ann, Xr, Yr, params)
+        mse.append(np.mean(costs))
+
+        if i % 10 == 0 and i != 0:
+            print(f'Iteration: {i}', mse[i])
+
+    #ut.plot_this([mse], 'graphs/softmax/train', ['MSE'], title='Softmax training')
+    return(ann['W'][-1], np.array(mse))
  
     
 def get_batch_indexes(minibatch_size, n):
@@ -85,13 +112,10 @@ def train_dae(X, params):
         costs = train_dae_batch(dae, Xe, params)
         mse.append(np.mean(costs))
     
-    ut.plot_this(
-        [mse], 
-        'graphs/dae/all.png', 
-        ['Cost evolution'],
-        title="DAE Training minimization")
+    #ut.plot_this([mse], 'graphs/dae/train', ['MSE'], title="DAE Training")
+    #[print(cost) for cost in mse] # debug only
     
-    return dae['W'][:len(dae['W']) // 2], costs
+    return dae['W'][:len(dae['W']) // 2], dae['A'][-1]
 
 
 #load Data for Training
@@ -106,8 +130,9 @@ def main():
     params = ut.load_config()
     Xe, Ye = load_data_trn()
     W, Xr = train_dae(Xe, params)
-    #Ws, cost = train_softmax(Xr, Ye)
-    #ut.save_w_dl(W, Ws, cost)
+    Ws, costs = train_softmax(Xr, Ye, params)
+    W.append(Ws)
+    ut.save_w_dl(W, costs)
        
 if __name__ == '__main__':
 	main()
