@@ -1,0 +1,11 @@
+X_train
+X_test
+Y_train
+Y_test
+costo.csv
+fscores.csv
+cmatriz.csv
+W_snn.npz
+graphs/*
+.vscode
+.DS_Store
