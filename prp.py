@@ -21,8 +21,6 @@ def get_amplitudes(frame):
 def create_dtrn_dtst(X, Y, training_percentage):
     random_X, random_Y = ut.sort_data_random(X,Y)
     dtrn_amount = int(len(random_X) * training_percentage)
-    
-    
     dtrn = {
         'data': random_X[:dtrn_amount, :],
         'labels': random_Y[:dtrn_amount, :],
@@ -41,9 +39,8 @@ def create_binary_labels(features, params):
 
     labels = np.zeros((len(features), n_classes), dtype=int)
     idx = np.arange(len(labels))
-    
     labels[idx, idx // (n_vars * n_frames)] = 1
-
+    
     return np.array(labels)
 
 
@@ -86,15 +83,11 @@ def load_class_csv(params):
 
 # Beginning ...
 def main():
-    now = time.time()
-    
     params = ut.load_config()
     data = load_class_csv(params)
     dtrn, dtst = create_input_label(data, params)
     save_data_csv(dtrn, dtst)
-    
-    timelapse = time.time() - now
-    print('Elapsed time: ', timelapse)
+
 
 if __name__ == '__main__':   
 	main()

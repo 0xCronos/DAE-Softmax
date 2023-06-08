@@ -38,11 +38,13 @@ def sort_data_random(X, Y, by_column=False):
 
     return random_X, random_Y
 
+
 # Normalize a list of variables (dataset)
 def normalize_data(X):
     for i in range(len(X)):
         X[i] = normalize_var(X[i])
     return X
+
 
 # Normalize a variable
 def normalize_var(var, a=0.01, b=0.99):
@@ -106,9 +108,7 @@ def dae_forward(dae, X, params):
     return dae['A'][-1]
         
 
-
 # STEP 2: Feed-Backward for DAE
-# TODO: Check if correct
 def dae_gradW(dae, params):
     act_func = params['dae_enc_act_func']
 
@@ -131,7 +131,6 @@ def dae_gradW(dae, params):
 
 
 # Update DAE's weight via mAdam
-# TODO: generalize for any ann
 def dae_updW_madam(dae, gradW, params):
     learning_rate = params['dae_learning_rate']
     beta_1, beta_2, epsilon = 0.9, 0.999, 10e-8
@@ -145,7 +144,6 @@ def dae_updW_madam(dae, gradW, params):
     return dae['W']
 
 # Softmax forward
-# TODO: refactor
 def sft_forward(ann, X, params):
     layers = ann['layers']
     
@@ -167,7 +165,6 @@ def gradW_softmax(ann, Y, params):
 
 
 # Update Softmax's weight via mAdam
-# TODO: refactor
 def updW_sft_mAdam(ann, gradW, params):
     learning_rate = params['sft_learning_rate']
     beta_1, beta_2, epsilon = 0.9, 0.999, 10e-8
@@ -181,7 +178,6 @@ def updW_sft_mAdam(ann, gradW, params):
 
 
 # Softmax cost calculation
-# TODO: refactor
 def calculate_sft_cost(Y, Y_pred, params):
     minibatch_size = params['sft_minibatch_size']
     log_Y_pred = np.log(Y_pred)

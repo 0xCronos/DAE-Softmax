@@ -4,7 +4,6 @@ import utility    as ut
 
 
 # Training miniBatch for softmax
-# TODO: refactor
 def train_sft_batch(ann, X, Y, params):
     minibatch_size = params['sft_minibatch_size']
     amount_of_batches = np.int16(np.floor(X.shape[1] / minibatch_size))
@@ -23,7 +22,6 @@ def train_sft_batch(ann, X, Y, params):
 
 
 def create_ann(X, Y):
-    #minibatch_size = params['sft_minibatch_size']
     WL = ut.iniW(Y.shape[0], X.shape[0])
     V = np.zeros_like(WL)
     S = np.zeros_like(WL)
@@ -33,7 +31,6 @@ def create_ann(X, Y):
     return {'W': W, 'V': V, 'A': A, 'S': S, 'Z': Z, 'layers': len(W)+1}
 
 
-# TODO: refactor
 def train_softmax(X, Y, params):
     ann = create_ann(X, Y)
     mse = []
@@ -46,7 +43,7 @@ def train_softmax(X, Y, params):
         if i % 10 == 0 and i != 0:
             print(f'Iteration: {i}', mse[i])
 
-    ut.plot_this([mse], 'graphs/softmax/train', ['MSE'], title='Softmax training')
+    #ut.plot_this([mse], 'graphs/softmax/train', ['MSE'], title='Softmax training')
     return(ann['W'][-1], np.array(mse))
 
     
@@ -111,11 +108,9 @@ def train_dae(X, params):
         costs = train_dae_batch(dae, Xe, params)
         mse.append(np.mean(costs))
     
-    ut.plot_this([mse], 'graphs/dae/train', ['MSE'], title="DAE Training")
-    #[print(cost) for cost in mse] # debug only
+    #ut.plot_this([mse], 'graphs/dae/train', ['MSE'], title="DAE Training")
     
-    #return dae['W'][:len(dae['W']) // 2], dae['A'][-1]
-    return dae['W'], dae['A'][-1]
+    return dae['W']
 
 
 #load Data for Training
@@ -129,7 +124,7 @@ def load_data_trn():
 def main():
     params = ut.load_config()
     Xe, Ye = load_data_trn()
-    W, _ = train_dae(Xe, params)
+    W = train_dae(Xe, params)
     Ws, costs = train_softmax(Xe, Ye, params)
     
     W.append(Ws)
