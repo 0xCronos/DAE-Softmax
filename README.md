@@ -1,5 +1,5 @@
-# DAE based Deep Learning
+# Deep Autoencoder With Softmax Classifier
 
-Deep Learning based on Deep AutoEncoder with hybrid learning using adam algorithm for a data classification problem obtained from a set of sensors.
+Stacked denoising autoencoder with softmax classifier.
 
 Homework for the Business Inteligence Course.
