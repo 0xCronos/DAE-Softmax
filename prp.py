@@ -17,7 +17,6 @@ def get_amplitudes(frame):
     return fft[:len(fft)//2]
 
 
-
 def create_dtrn_dtst(X, Y, training_percentage):
     random_X, random_Y = ut.sort_data_random(X,Y)
     dtrn_amount = int(len(random_X) * training_percentage)

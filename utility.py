@@ -229,4 +229,4 @@ def plot_this(X, path_to_save, labels=None, title=None):
     ax.set_ylabel('Cost')
 
     plt.savefig(path_to_save)
-    plt.show()
+    #plt.show()

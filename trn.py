@@ -43,7 +43,7 @@ def train_softmax(X, Y, params):
         if i % 10 == 0 and i != 0:
             print(f'Iteration: {i}', mse[i])
 
-    #ut.plot_this([mse], 'graphs/softmax/train', ['MSE'], title='Softmax training')
+    ut.plot_this([mse], 'graphs/softmax/train', ['MSE'], title='Softmax training')
     return(ann['W'][-1], np.array(mse))
 
     
@@ -97,6 +97,13 @@ def create_dae(encoders_nodes, features):
     return { 'W': W, 'V': V, 'S': S, 'A': A, 'Z': Z, 'layers': layers}
 
 
+def generate_new_data(dae, X, params):
+    dae['W'] = dae['W'][:len(dae['W'])//2]
+    dae['layers'] = (len(dae['W']) + 1)
+    dae['A'] = [None] *  dae['layers']
+    dae['Z'] = [None] * dae['layers'] 
+    return ut.dae_forward(dae, X, params)
+
 # DAE's Training 
 def train_dae(X, params):
     encoders_nodes = list(params.values())[11:]
@@ -107,10 +114,12 @@ def train_dae(X, params):
         Xe = X[:, np.random.permutation(X.shape[1])]      
         costs = train_dae_batch(dae, Xe, params)
         mse.append(np.mean(costs))
+
+    X_prime = generate_new_data(dae, X, params)
+
+    ut.plot_this([mse], 'graphs/dae/train', ['MSE'], title="DAE Training")
     
-    #ut.plot_this([mse], 'graphs/dae/train', ['MSE'], title="DAE Training")
-    
-    return dae['W']
+    return dae['W'], X_prime
 
 
 #load Data for Training
@@ -124,8 +133,8 @@ def load_data_trn():
 def main():
     params = ut.load_config()
     Xe, Ye = load_data_trn()
-    W = train_dae(Xe, params)
-    Ws, costs = train_softmax(Xe, Ye, params)
+    W, X_prime = train_dae(Xe, params)
+    Ws, costs = train_softmax(X_prime, Ye, params)
     
     W.append(Ws)
     ut.save_w_dl(W, costs)
