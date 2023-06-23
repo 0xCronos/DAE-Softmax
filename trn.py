@@ -104,6 +104,7 @@ def generate_new_data(dae, X, params):
     dae['Z'] = [None] * dae['layers'] 
     return ut.dae_forward(dae, X, params)
 
+
 # DAE's Training 
 def train_dae(X, params):
     encoders_nodes = list(params.values())[11:]

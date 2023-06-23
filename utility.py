@@ -198,20 +198,6 @@ def save_w_dl(W, costs):
     np.savetxt("costo.csv", costs, fmt="%.10f")
 
 
-# TODO: delete before sending homework
-def plot(X, path_to_save, labels=None, title=None):
-    import matplotlib as mpl
-    import matplotlib.pyplot as plt
-
-    fig, ax = plt.subplots()
-    for i, x in enumerate(X):
-        ax.plot(range(0, len(x)), x, linewidth=1)
-
-    plt.savefig(path_to_save)
-    plt.show()
-    
-
-# TODO: delete before sending homework
 def plot_this(X, path_to_save, labels=None, title=None):
     import matplotlib as mpl
     import matplotlib.pyplot as plt
@@ -230,3 +216,13 @@ def plot_this(X, path_to_save, labels=None, title=None):
 
     plt.savefig(path_to_save)
     #plt.show()
+
+
+def print_dae(dae):
+    for key in dae.keys():
+        if key == 'layers':
+            print(f'layers: {dae[key]}')
+        else:
+            print(f'{key}: {len(dae[key])}')
+            for i, data in enumerate(dae[key]):
+                print(f'\t {i+1}: {data.shape}') if key != 'Z' else ''
